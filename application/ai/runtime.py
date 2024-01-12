@@ -1,10 +1,10 @@
 import numpy as np
 from PIL import Image
-from ai.model import get_model
+from ai.model import get_cnn_model
 from os import path
 
 module_dir = path.dirname(path.realpath(__file__))
-model = get_model()
+model = get_cnn_model()
 model.load_weights(path.join(module_dir, '..', 'weights', 'trained'))
 
 def pixels_to_greyscale(data):
