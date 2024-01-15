@@ -1,34 +1,55 @@
-from keras.models import Sequential
-from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense
+from tensorflow import keras
+from sklearn import datasets
 
-def get_cnn_model():
-    model = Sequential()
+NUM_DIGITS = 10
 
-    # Convolutional layer with 32 filters, kernel size of 3x3
-    model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(32, 32, 1)))
+class NeuralNetConfig:
+    def __init__(self):
+        self.digits = NUM_DIGITS
+        self.image_height = 8
+        self.image_width = 8
+        self.channels = 1  # Grayscale images
+        self.conv_layer_params = [
+            (32, (3, 3), 'relu', 'same'),
+            (64, (3, 3), 'relu', 'same'),
+            (64, (3, 3), 'relu', 'same')
+        ]
+        self.dense_units = 128
+        self.optimizer = 'sgd'
+        self.loss = 'categorical_crossentropy'
+        self.metrics = ['accuracy']
 
-    # Another convolutional layer with 64 filters and kernel size of 3x3. Adding more filters can help the model to learn more complex patterns
-    model.add(Conv2D(64, (3, 3), activation='relu'))
+def get_model(config):
+    # Input layer
+    input_layer = keras.layers.Input(shape=(config.image_height, config.image_width, config.channels))
+    
+    # Convolutional layers
+    x = input_layer
+    for filters, kernel_size, activation, padding in config.conv_layer_params:
+        x = keras.layers.Conv2D(filters=filters, kernel_size=kernel_size, activation=activation, padding=padding)(x)
+        x = keras.layers.MaxPooling2D(pool_size=(2, 2))(x)
 
-    # Max pooling layer to reduce spatial dimensions
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+    # Flatten layer
+    x = keras.layers.Flatten()(x)
 
-    # Regularization layer using dropout
-    model.add(Dropout(0.25))
-
-    # Flatten layer to reshape the tensor output from previous layer to fit fully connected layer
-    model.add(Flatten())
-
-    # Fully connected layer
-    model.add(Dense(128, activation='relu'))
-
-    # Another dropout layer for regularization
-    model.add(Dropout(0.5))
+    # Dense layer
+    x = keras.layers.Dense(units=config.dense_units, activation='relu')(x)
 
     # Output layer
-    model.add(Dense(NUM_DIGITS, activation='softmax'))
+    output_layer = keras.layers.Dense(units=config.digits, activation='softmax')(x)
 
-    # Compilation of the model
-    model.compile(optimizer='sgd', loss='categorical_crossentropy', metrics=['accuracy'])
+    # Model
+    model = keras.Model(inputs=input_layer, outputs=output_layer)
+    model.compile(optimizer=config.optimizer, loss=config.loss, metrics=config.metrics)
 
     return model
+
+# Usage:
+# instantiate your configuration class
+config = NeuralNetConfig()
+
+# load your dataset using the class attributes
+digit_features, digit_classes = datasets.load_digits(n_class=NUM_DIGITS, return_X_y=True)
+
+# Now you can input your config into your get_model function to create your model
+model = get_model(config)

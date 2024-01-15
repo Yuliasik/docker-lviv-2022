@@ -1,10 +1,11 @@
 import numpy as np
 from PIL import Image
-from ai.model import get_cnn_model
+from ai.model import get_model, NeuralNetConfig
 from os import path
 
 module_dir = path.dirname(path.realpath(__file__))
-model = get_cnn_model()
+config = NeuralNetConfig()
+model = get_model(config)
 model.load_weights(path.join(module_dir, '..', 'weights', 'trained'))
 
 def pixels_to_greyscale(data):
@@ -24,14 +25,13 @@ def pixels_to_greyscale(data):
     return data
 
 def image_to_ndarray(image):
-    """
-    Simple utility to convert an image to a array with shape (1, #pixels in image)
-    :param image: image to convert
-    :return: an array with shape (1, #pixels in image), converts image to greyscale
-    """
     pixels = list(image.getdata())
     pixels = pixels_to_greyscale(pixels)
-    return np.asarray(pixels)
+
+    # Assuming pixels is a flattened 8x8 image, reshape it to (8, 8, 1)
+    pixels = np.asarray(pixels).reshape(8, 8, 1)
+
+    return pixels
 
 
 def classify(image_file):

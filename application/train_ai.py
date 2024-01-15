@@ -20,7 +20,7 @@ num_samples = digit_classes.shape[0]
 
 # normalize features, see documentation of sklearn.datasets.load_digits!
 # neural networks work best with normalized data
-digit_features /= MAX_FEATURE
+digit_features = digit_features.reshape(-1, 8, 8, 1)
 
 # we need so called "one-hot" vectors
 # one-hots are vectors, where all entries are 0 except the target class, which is 1
@@ -29,7 +29,8 @@ for index, digit_class in enumerate(digit_classes):
     digit_labels[index][digit_class] = 1.
 
 # get a neural net, that can fit our problem
-model = get_model()
+config = NeuralNetConfig()
+model = get_model(config)
 
 # prints a human readable summary of the model to the out-stream
 model.summary()
